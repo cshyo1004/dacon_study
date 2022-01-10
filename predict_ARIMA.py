@@ -1,6 +1,12 @@
 import pandas as pd
 import os
 
+#LSTM
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.layers import LSTM
+
 bpath = 'public_bicycle_usage'
 train = pd.read_csv(os.path.join(bpath, 'train.csv'))
 test = pd.read_csv(os.path.join(bpath, 'test.csv'))
@@ -115,5 +121,4 @@ model_fit = model.fit()
 print(model_fit.summary())
 fore = model_fit.forecast(steps=50)
 print(fore)
-
 
