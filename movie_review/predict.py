@@ -48,14 +48,14 @@ test_words = [' '.join(okt.nouns(x)) for x in test['document']]
 Tvectorizer = TfidfVectorizer()
 Tvectorizer.fit(train_words)
 x_train = Tvectorizer.transform(train_words)
-x_test = train.label
-y_train = Tvectorizer.transform(test_words)
+y_train = train.label
+x_test = Tvectorizer.transform(test_words)
 
 # 모델 
 model = LogisticRegression()
-model.fit(x_train, x_test)
+model.fit(x_train, y_train)
 
 # 결과
-prediction = model.predict(y_train)
+prediction = model.predict(x_test)
 submission['label'] = prediction
 submission.to_csv('sample_submission.csv', index=False)

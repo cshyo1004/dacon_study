@@ -55,12 +55,12 @@ test_words = [' '.join(okt.nouns(x)) for x in test['document']]
 Cvectorizer = CountVectorizer()
 Cvectorizer.fit(train_words)
 data = Cvectorizer.transform(train_words)
-x_train, y_train, x_test, y_test = train_test_split(data, train.label, test_size=0.33, random_state=1, stratify=train.label)
+x_train, x_test, y_train, y_test = train_test_split(data, train.label, test_size=0.33, random_state=1, stratify=train.label)
 
 # 모델 테스트
 model = RandomForestClassifier(n_estimators=100, random_state=1)
-model.fit(x_train, x_test)
-prediction = model.predict(y_train)
+model.fit(x_train, y_train)
+prediction = model.predict(x_test)
 
 # 스코어
 accuracy = accuracy_score(y_test, prediction)
@@ -74,8 +74,8 @@ x_train, y_train, x_test, y_test = train_test_split(data, train.label, test_size
 
 # 모델 테스트
 model = RandomForestClassifier(n_estimators=100, random_state=1)
-model.fit(x_train, x_test)
-prediction = model.predict(y_train)
+model.fit(x_train, y_train)
+prediction = model.predict(x_test)
 
 # 스코어
 accuracy = accuracy_score(y_test, prediction)
@@ -92,9 +92,9 @@ y_train = Tvectorizer.transform(test_words)
 
 # 모델 
 model = RandomForestClassifier(n_estimators=100, random_state=1)
-model.fit(x_train, x_test)
+model.fit(x_train, y_train)
 
 # 결과
-prediction = model.predict(y_train)
+prediction = model.predict(x_test)
 submission['label'] = prediction
 submission.to_csv('RF_result.csv', index=False)
