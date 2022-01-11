@@ -1,8 +1,12 @@
 import pandas as pd
 import os
 import re
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 from konlpy.tag import Okt
 
 
@@ -44,6 +48,41 @@ len_words = len(set([y for x in train['document'] for y in okt.morphs(x)])) # 10
 train_words = [' '.join(okt.nouns(x)) for x in train['document']]
 test_words = [' '.join(okt.nouns(x)) for x in test['document']]
 
+#-----------------------------------------------------------------------------------
+
+# 텍스트 벡터화 방식 테스트
+# CountVectorizer
+Cvectorizer = CountVectorizer()
+Cvectorizer.fit(train_words)
+data = Cvectorizer.transform(train_words)
+x_train, y_train, x_test, y_test = train_test_split(data, train.label, test_size=0.33, random_state=1, stratify=train.label)
+
+# 모델 테스트
+model = RandomForestClassifier(n_estimators=100, random_state=1)
+model.fit(x_train, x_test)
+prediction = model.predict(y_train)
+
+# 스코어
+accuracy = accuracy_score(y_test, prediction)
+print(f'Mean accuracy score: {accuracy:.3}') # 0.699
+
+# TfidfVectorizer
+Tvectorizer = TfidfVectorizer()
+Tvectorizer.fit(train_words)
+data = Tvectorizer.transform(train_words)
+x_train, y_train, x_test, y_test = train_test_split(data, train.label, test_size=0.33, random_state=1, stratify=train.label)
+
+# 모델 테스트
+model = RandomForestClassifier(n_estimators=100, random_state=1)
+model.fit(x_train, x_test)
+prediction = model.predict(y_train)
+
+# 스코어
+accuracy = accuracy_score(y_test, prediction)
+print(f'Mean accuracy score: {accuracy:.3}') # 0.715
+
+#-----------------------------------------------------------------------------------
+
 # 텍스트 벡터화
 Tvectorizer = TfidfVectorizer()
 Tvectorizer.fit(train_words)
@@ -52,10 +91,10 @@ x_test = train.label
 y_train = Tvectorizer.transform(test_words)
 
 # 모델 
-model = LogisticRegression()
+model = RandomForestClassifier(n_estimators=100, random_state=1)
 model.fit(x_train, x_test)
 
 # 결과
 prediction = model.predict(y_train)
 submission['label'] = prediction
-submission.to_csv('sample_submission.csv', index=False)
+submission.to_csv('RF_result.csv', index=False)
