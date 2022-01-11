@@ -87,8 +87,8 @@ print(f'Mean accuracy score: {accuracy:.3}') # 0.766
 Tvectorizer = TfidfVectorizer()
 Tvectorizer.fit(train_words)
 x_train = Tvectorizer.transform(train_words)
-x_test = train.label
-y_train = Tvectorizer.transform(test_words)
+y_train = train.label
+x_test = Tvectorizer.transform(test_words)
 
 # 모델 
 model = LogisticRegression()

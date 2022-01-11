@@ -1,12 +1,8 @@
 import pandas as pd
-import os
 import re
 import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer
+import keras
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 from konlpy.tag import Okt
 
 
@@ -48,40 +44,34 @@ len_words = len(set([y for x in train['document'] for y in okt.morphs(x)])) # 10
 train_words = [' '.join(okt.nouns(x)) for x in train['document']]
 test_words = [' '.join(okt.nouns(x)) for x in test['document']]
 
-#-----------------------------------------------------------------------------------
+# #--------------------------------------------------------------------
+# # 텍스트 벡터화
+# Tvectorizer = TfidfVectorizer()
+# Tvectorizer.fit(train_words)
+# data = Tvectorizer.transform(train_words)
+# x_train, x_test, y_train, y_test = train_test_split(data, train.label, test_size=0.33, stratify=train.label)
 
-# 텍스트 벡터화 방식 테스트
-# CountVectorizer
-Cvectorizer = CountVectorizer()
-Cvectorizer.fit(train_words)
-data = Cvectorizer.transform(train_words)
-x_train, x_test, y_train, y_test = train_test_split(data, train.label, test_size=0.33, random_state=1, stratify=train.label)
+# # LSTM 학습을 위해 3차원 배열로 X값을 변형
+# x_train = x_train.toarray()[:, :, np.newaxis]
+# x_test = x_test.toarray()[:, :, np.newaxis]
 
-# 모델 테스트
-model = RandomForestClassifier(n_estimators=100, random_state=1)
-model.fit(x_train, y_train)
-prediction = model.predict(x_test)
+# # build model
+# model = keras.Sequential()
+# model.add(keras.layers.LSTM(units=128,input_shape=(x_train.shape[1], x_train.shape[2])))
+# model.add(keras.layers.Dropout(rate=0.5))
+# model.add(keras.layers.Dense(units=1, activation='sigmoid'))
+# model.compile(loss='binary_crossentropy', optimizer='rmsprop')
 
-# 스코어
-accuracy = accuracy_score(y_test, prediction)
-print(f'Mean accuracy score: {accuracy:.3}') # 0.699
+# # train
+# model.fit(x_train, y_train, validation_split=0.2, epochs=1)
 
-# TfidfVectorizer
-Tvectorizer = TfidfVectorizer()
-Tvectorizer.fit(train_words)
-data = Tvectorizer.transform(train_words)
-x_train, y_train, x_test, y_test = train_test_split(data, train.label, test_size=0.33, random_state=1, stratify=train.label)
-
-# 모델 테스트
-model = RandomForestClassifier(n_estimators=100, random_state=1)
-model.fit(x_train, y_train)
-prediction = model.predict(x_test)
-
-# 스코어
-accuracy = accuracy_score(y_test, prediction)
-print(f'Mean accuracy score: {accuracy:.3}') # 0.715
-
-#-----------------------------------------------------------------------------------
+# # test
+# result = model.predict(x_test)
+# result
+# # score
+# score = model.evaluate(y_test, result)
+# print(f'score: {score:.3}')
+# #--------------------------------------------------------------------
 
 # 텍스트 벡터화
 Tvectorizer = TfidfVectorizer()
@@ -90,11 +80,23 @@ x_train = Tvectorizer.transform(train_words)
 y_train = train.label
 x_test = Tvectorizer.transform(test_words)
 
-# 모델 
-model = RandomForestClassifier(n_estimators=100, random_state=1)
-model.fit(x_train, y_train)
+# LSTM 학습을 위해 3차원 배열로 X값을 변형
+x_train = x_train.toarray()[:, :, np.newaxis]
+x_test = x_test.toarray()[:, :, np.newaxis]
+
+# build model
+model = keras.Sequential()
+model.add(keras.layers.LSTM(units=128,input_shape=(x_train.shape[1], x_train.shape[2])))
+model.add(keras.layers.Dropout(rate=0.5))
+model.add(keras.layers.Dense(units=1, activation='sigmoid'))
+model.compile(loss='binary_crossentropy', optimizer='rmsprop')
+
+# train
+model.fit(x_train, y_train, validation_split=0.2, epochs=1)
 
 # 결과
 prediction = model.predict(x_test)
 submission['label'] = prediction
-submission.to_csv('RF_result.csv', index=False)
+submission.to_csv('LSTM_result.csv', index=False)
+
+
