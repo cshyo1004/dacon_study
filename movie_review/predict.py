@@ -1,5 +1,4 @@
 import pandas as pd
-import os
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -35,17 +34,13 @@ test['document'] = test['document'].apply(lambda x : ' '.join(x.split()))
 find_na(train)
 find_na(test)
 
-# 명사만 추출했을 때 길이
+# 텍스트 데이터 정제
 okt = Okt()
-len_nouns = len(set([y for x in train['document'] for y in okt.nouns(x)])) # 5207
-# 전체 단어 길이
-len_words = len(set([y for x in train['document'] for y in okt.morphs(x)])) # 10409
-# 명사만 추출
-train_words = [' '.join(okt.nouns(x)) for x in train['document']]
-test_words = [' '.join(okt.nouns(x)) for x in test['document']]
+train_words = [' '.join(okt.morphs(x, stem=True)) for x in train['document']]
+test_words = [' '.join(okt.morphs(x, stem=True)) for x in test['document']]
 
 # 텍스트 벡터화
-Tvectorizer = TfidfVectorizer()
+Tvectorizer = TfidfVectorizer(analyzer="word", sublinear_tf=True, ngram_range=(1, 2), max_features=9000)
 Tvectorizer.fit(train_words)
 x_train = Tvectorizer.transform(train_words)
 y_train = train.label
@@ -58,4 +53,4 @@ model.fit(x_train, y_train)
 # 결과
 prediction = model.predict(x_test)
 submission['label'] = prediction
-submission.to_csv('sample_submission.csv', index=False)
+submission.to_csv('submission.csv', index=False)
