@@ -43,14 +43,14 @@ test_words = [' '.join(okt.morphs(x, stem=True)) for x in test['document']]
 Tvectorizer = TfidfVectorizer(analyzer="word", sublinear_tf=True, ngram_range=(1, 2), max_features=9000)
 Tvectorizer.fit(train_words)
 x_train = Tvectorizer.transform(train_words)
-y_train = train.label
-x_test = Tvectorizer.transform(test_words)
+x_test = train.label
+y_train = Tvectorizer.transform(test_words)
 
 # 모델 
 model = LogisticRegression()
-model.fit(x_train, y_train)
+model.fit(x_train, x_test)
 
 # 결과
-prediction = model.predict(x_test)
+prediction = model.predict(y_train)
 submission['label'] = prediction
 submission.to_csv('submission.csv', index=False)
