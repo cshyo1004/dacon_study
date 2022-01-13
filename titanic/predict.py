@@ -1,5 +1,8 @@
 import numpy as np
 import pandas as pd
+from xgboost import XGBClassifier
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import accuracy_score
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -108,47 +111,41 @@ test['Sex'] = test['Sex'].map({'female':0,'male':1})
 train.info()
 test.info()
 
-#--------------------------------------------
-# # 모델 테스트
-
-
-# train['Name'] = train['Name'].astype('category')
-# train['Ticket'] = train['Ticket'].astype('category')
-# train['Cabin'] = train['Cabin'].astype('category')
-# train['Embarked'] = train['Embarked'].astype('category')
-# x_train, x_test, y_train, y_test = train_test_split(train, train['Survived'], test_size=0.3, random_state=1, stratify=train['Survived'])
-
-# clf = XGBClassifier(n_estimators=400, learning_rate=0.1, max_depth=3, tree_method='gpu_hist', enable_categorical=True)
-# evals = [(x_test,y_test)]
-# clf.fit(x_train, y_train,early_stopping_rounds=100, eval_metric='logloss', eval_set=evals, verbose=True)
-# # test
-# prediction = clf.predict(x_test)
-# # score
-# print(f'train score : {clf.score(x_train,y_train)}')
-# print(f'test accuracy : {accuracy_score(y_test, prediction)}')
-
-#----------------------------------------
-# 결과
-from xgboost import XGBClassifier
+## 데이터 정제
 x_train = train.drop(columns=['Survived'])
-y_train = train.loc[:, 'Survived']
-x_test = test
+x_test = train.loc[:, 'Survived']
+y_train = test
 
 x_train['Name'] = x_train['Name'].astype('category')
 x_train['Ticket'] = x_train['Ticket'].astype('category')
 x_train['Cabin'] = x_train['Cabin'].astype('category')
 x_train['Embarked'] = x_train['Embarked'].astype('category')
-x_test['Name'] = x_test['Name'].astype('category')
-x_test['Ticket'] = x_test['Ticket'].astype('category')
-x_test['Cabin'] = x_test['Cabin'].astype('category')
-x_test['Embarked'] = x_test['Embarked'].astype('category')
+y_train['Name'] = y_train['Name'].astype('category')
+y_train['Ticket'] = y_train['Ticket'].astype('category')
+y_train['Cabin'] = y_train['Cabin'].astype('category')
+y_train['Embarked'] = y_train['Embarked'].astype('category')
 
-model = XGBClassifier(tree_method='gpu_hist' ,n_estimators=400, enable_categorical=True)
-model.fit(x_train, y_train)
-prediction = model.predict(x_test)
+## 모델 검증
+xtrain, ytrain, xtest, ytest = train_test_split(x_train, x_test, test_size=0.3, random_state=1, stratify=x_test)
+
+model = XGBClassifier(tree_method='gpu_hist', enable_categorical=True)
+evals = [(ytrain,ytest)]
+params = {'max_depth':[5,7,8], 'min_child_weight':[1,3], 'learning_rate':[0.05,0.1,0.5], 'n_estimators':[200,300,400]}
+gridcv = GridSearchCV(model, param_grid=params)
+gridcv.fit(xtrain, xtest, early_stopping_rounds=30, eval_set=evals)
+print(gridcv.best_params_)
+
+model = XGBClassifier(n_estimators=200, max_depth=5, learning_rate=0.05, min_child_weight=1, tree_method='gpu_hist', enable_categorical=True)
+model.fit(xtrain, xtest, early_stopping_rounds=100, eval_set=evals, verbose=True)
+prediction = model.predict(ytrain)
+print(f'train score : {model.score(xtrain,xtest)}')
+print(f'model eval : {accuracy_score(ytest, prediction)}')
+
+## 모델 적용
+model = XGBClassifier(n_estimators=200, max_depth=5, learning_rate=0.05, min_child_weight=1, tree_method='gpu_hist', enable_categorical=True)
+model.fit(x_train, x_test)
+prediction = model.predict(y_train)
+
+# 결과
 submission['Survived'] = prediction
 submission.to_csv('submission_XGB.csv', index=False)
-
-## Dacon accuracy_score 0.72
-
-
