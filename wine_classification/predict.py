@@ -19,12 +19,16 @@ type 종류
 3. 결측치 제거
 
 모델 XGBClassifier
-선정 이유 : kaggle에서 분류 모델 순위 1위
-https://towardsdatascience.com/choosing-the-best-classification-algorithm-f254f68cca39
 '''
 
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.model_selection import train_test_split, GridSearchCV
+import warnings
+warnings.filterwarnings('ignore')
 
 train = pd.read_csv('train.csv')
 test = pd.read_csv('test.csv')
@@ -43,7 +47,6 @@ x_data['type'].unique()
 x_data['type'] = [0 if x == 'white' else 1 for x in x_data['type']]
 
 # PCA
-from sklearn.decomposition import PCA
 pca = PCA()
 pca.fit(x_data)
 
@@ -59,25 +62,31 @@ def find_na(df):
             print(column, len(df[df[column].isna()]))
 find_na(train)
 
-# train / test
-x_train = x_data
-y_train = x_target
-x_test = test.iloc[:,1:]
-x_test['type'] = [0 if x=='white' else 1 for x in x_test['type']]
-
-# 모델
-from xgboost import XGBClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-
-# train
+# 모델 검증
+x_train, y_train, x_test, y_test = train_test_split(x_data, x_target, test_size=0.33, random_state=1, stratify=x_target)
 model = XGBClassifier(n_estimators=300)
-model.fit(x_train, y_train)
+evals = [(y_train,y_test)]
+params = {'max_depth':[5,7,8], 'min_child_weight':[1,3], 'learning_rate':[0.05,0.1,0.5]}
+gridcv = GridSearchCV(model, param_grid=params)
+gridcv.fit(x_train, x_test, early_stopping_rounds=30, eval_set=evals)
+print(gridcv.best_params_)
 
-# test
-prediction = model.predict(x_test)
+model = XGBClassifier(n_estimators=300, max_depth=8, min_child_weight=1, learning_rate=0.5)
+model.fit(x_train, x_test, early_stopping_rounds=100, eval_set=evals, verbose=True)
+prediction = model.predict(y_train)
+print(f'train score : {model.score(x_train,x_test)}')
+print(f'model eval : {accuracy_score(y_test, prediction)}')
 
-# score
-print(f'train score : {model.score(x_train,y_train)}')
+# 데이터 정제
+x_train = x_data
+x_test = x_target
+y_train = test.iloc[:,1:]
+y_train['type'] = [0 if x=='white' else 1 for x in x_test['type']]
+
+# 모델 적용
+model = XGBClassifier(n_estimators=300, max_depth=8, min_child_weight=1, learning_rate=0.5)
+model.fit(x_train, x_test)
+prediction = model.predict(y_train)
 
 # 결과
 submission['quality'] = prediction
