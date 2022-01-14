@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-from xgboost import XGBClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from catboost import CatBoostClassifier, Pool
 import warnings
@@ -117,7 +116,7 @@ test.drop(columns=['PassengerId'], inplace=True)
 ## 데이터 확인
 train.info()
 test.info()
-
+train['Embarked'].value_counts()
 # 범주형 데이터 전처리
 '''
 Name : 삭제
