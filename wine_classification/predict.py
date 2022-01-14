@@ -16,10 +16,8 @@ type 종류
 
 1. 결측치 제거
 2. 데이터 전처리
-3. 모델 검증
-4. 데이터 정제
-5. 모델 적용
-6. 결과
+3. 모델 학습
+4. 결과
 
 모델 XGBClassifier
 '''
@@ -56,7 +54,7 @@ x_target = train.loc[:,'quality']
 x_data['type'].unique()
 x_data['type'] = [0 if x == 'white' else 1 for x in x_data['type']]
 
-# 모델 검증
+# 모델 학습
 x_train, y_train, x_test, y_test = train_test_split(x_data, x_target, test_size=0.33, random_state=1, stratify=x_target)
 model = XGBClassifier(n_estimators=300)
 evals = [(y_train,y_test)]
@@ -72,18 +70,12 @@ prediction = model.predict(y_train)
 print(f'train score : {model.score(x_train,x_test)}')
 print(f'model eval : {accuracy_score(y_test, prediction)}')
 
-# 데이터 정제
+# 결과
 x_train = x_data
 x_test = x_target
 y_train = test.iloc[:,1:]
 y_train['type'] = [0 if x=='white' else 1 for x in x_test['type']]
 
-# 모델 적용
-model = XGBClassifier(n_estimators=300, max_depth=8, min_child_weight=1, learning_rate=0.5)
-model.fit(x_train, x_test)
 prediction = model.predict(y_train)
-
-
-# 결과
 submission['quality'] = prediction
 submission.to_csv('submission.csv', index=False)
