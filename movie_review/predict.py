@@ -3,7 +3,8 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from konlpy.tag import Okt
-
+import warnings
+warnings.filterwarnings('ignore')
 
 # 데이터 불러오기
 train = pd.read_csv('train.csv')
