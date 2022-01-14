@@ -14,18 +14,13 @@ test = pd.read_csv('test.csv')
 submission = pd.read_csv('sample_submission.csv')
 
 # 데이터 전처리
-# 결측치
-def find_na(df):
-    for column in df.columns:
-        if not df[df[column].isna()].empty:
-            print(column, len(df[df[column].isna()]))
-find_na(train)            
-find_na(test)
+# 결측치 확인
+train.isnull().sum()
+test.isnull().sum()
+
 # 기호 제거
-train['document'] = train['document'].apply(lambda x : re.sub('[^ 가-힣*]', '', x))
-test['document'] = test['document'].apply(lambda x : re.sub('[^ 가-힣*]', '', x))
-find_na(train)
-find_na(test)
+train['document'] = train['document'].apply(lambda x : re.sub('[^ a-zA-Zㄱ-ㅎㅏ-ㅣ가-힣*]', '', x))
+test['document'] = test['document'].apply(lambda x : re.sub('[^ a-zA-Zㄱ-ㅎㅏ-ㅣ가-힣*]', '', x))
 
 # 온점 제거
 train['document'] = train['document'].str.replace('.', '')
@@ -34,8 +29,6 @@ test['document'] = test['document'].str.replace('.', '')
 # 빈칸 제거
 train['document'] = train['document'].apply(lambda x : ' '.join(x.split()))
 test['document'] = test['document'].apply(lambda x : ' '.join(x.split()))
-find_na(train)
-find_na(test)
 
 # 텍스트 데이터 정제
 okt = Okt()

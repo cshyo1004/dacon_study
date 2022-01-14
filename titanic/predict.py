@@ -116,7 +116,7 @@ test.drop(columns=['PassengerId'], inplace=True)
 ## 데이터 확인
 train.info()
 test.info()
-train['Embarked'].value_counts()
+
 # 범주형 데이터 전처리
 '''
 Name : 삭제
